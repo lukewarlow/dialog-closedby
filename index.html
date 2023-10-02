@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-widh, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>&lt;dialog lightdismiss&gt;</title>
+</head>
+<body>
+  <script type="module">
+    import { isSupported, apply } from "./index.js";
+    if (!isSupported()) apply();
+  </script>
+  <h1>Dialog lightdismiss attribute demo</h1>
+  <p>Proposal: <a href="https://github.com/whatwg/html/issues/9373">https://github.com/whatwg/html/issues/9373</a></p>
+  <p>Repo: <a href="https://github.com/lukewarlow/lightdismiss-demo">https://github.com/lukewarlow/lightdismiss-demo</a></p>
+  <button onclick="dialog.showModal()">
+    Invoker
+  </button>
+
+  <dialog id="dialog">
+    Modal Dialog <button onclick="dialog.setAttribute('lightdismiss', '')">Light there be light</button>
+  </dialog>
+</body>
