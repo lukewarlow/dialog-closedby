@@ -8,6 +8,7 @@ export function isSupported() {
 
 /** @type {WeakMap<Document, Set<HTMLDialogElement>>} */
 const anyDialogList = new WeakMap();
+const dialogList = new WeakMap();
 function lightDismissOpenDialogs(event) {
   if (!event.isTrusted) return;
   // Composed path allows us to find the target within shadowroots
@@ -27,6 +28,21 @@ function lightDismissOpenDialogs(event) {
   }
 }
 
+function preventEscapeCloseForNoneDialogs(event) {
+  if (!event.isTrusted) return;
+  if (event.key !== "Escape") return;
+  // Composed path allows us to find the target within shadowroots
+  const target = event.composedPath()[0];
+  if (!target) return;
+  const document = target.ownerDocument;
+  if (dialogList.has(document)) {
+    const topDialog = Array.from(dialogList.get(document)).at(-1);
+    if (topDialog.closedBy === "none" && topDialog.matches(':modal')) {
+      event.preventDefault();
+    }
+  }
+}
+
 function observeShadowRoots(ElementClass, callback) {
   const attachShadow = ElementClass.prototype.attachShadow;
   ElementClass.prototype.attachShadow = function (init) {
@@ -42,6 +58,11 @@ export function apply() {
   HTMLDialogElement.prototype.show = function () {
     show.call(this, ...arguments);
     const closedby = this.closedBy;
+    const document = this.ownerDocument;
+    if (!dialogList.has(document)) {
+      dialogList.set(document, new Set());
+    }
+    dialogList.get(document).add(this);
     if (['any', 'closerequest'].includes(closedby)) {
       this.__closeWatcher = new CloseWatcher();
       this.__closeWatcher.onclose = () => {
@@ -49,7 +70,6 @@ export function apply() {
       };
 
       if (closedby === 'any') {
-        const document = this.ownerDocument;
         if (!anyDialogList.has(document)) {
           anyDialogList.set(document, new Set());
         }
@@ -61,14 +81,16 @@ export function apply() {
   HTMLDialogElement.prototype.showModal = function () {
     showModal.call(this, ...arguments);
     const closedby = this.closedBy;
+    const document = this.ownerDocument;
+    if (!dialogList.has(document)) {
+      dialogList.set(document, new Set());
+    }
+    dialogList.get(document).add(this);
     if (closedby === 'any') {
-      const document = this.ownerDocument;
       if (!anyDialogList.has(document)) {
         anyDialogList.set(document, new Set());
       }
       anyDialogList.get(document).add(this);
-    } else if (closedby === 'none') {
-      // TODO: Polyfill this, tricky due to close watcher anti-abuse mechanisms
     }
   }
   const close = HTMLDialogElement.prototype.close;
@@ -78,6 +100,9 @@ export function apply() {
     const document = this.ownerDocument;
     if (anyDialogList.has(document)) {
       anyDialogList.get(document).delete(this);
+    }
+    if (dialogList.has(document)) {
+      dialogList.get(document).delete(this);
     }
   }
 
@@ -119,4 +144,5 @@ export function apply() {
   });
 
   document.addEventListener("pointerdown", lightDismissOpenDialogs);
+  document.addEventListener("keydown", preventEscapeCloseForNoneDialogs);
 }
