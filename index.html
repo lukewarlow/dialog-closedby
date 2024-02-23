@@ -1,23 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta name="viewport" content="width=device-widh, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <title>&lt;dialog lightdismiss&gt;</title>
+  <title>&lt;dialog closedby&gt;</title>
 </head>
 <body>
   <script type="module">
-    import { isSupported, apply } from "./index.js";
-    if (!isSupported()) apply();
+    import { apply } from "./index.js";
+    apply();
   </script>
-  <h1>Dialog lightdismiss attribute demo</h1>
+  <h1>Dialog closedby attribute demo</h1>
   <p>Proposal: <a href="https://github.com/whatwg/html/issues/9373">https://github.com/whatwg/html/issues/9373</a></p>
-  <p>Repo: <a href="https://github.com/lukewarlow/lightdismiss-demo">https://github.com/lukewarlow/lightdismiss-demo</a></p>
-  <button onclick="dialog.showModal()">
-    Invoker
+  <p>Repo: <a href="https://github.com/lukewarlow/dialog-closedby">https://github.com/lukewarlow/dialog-closedby</a></p>
+  <button onclick="anyDialog.show()">
+    Open dialog with light dismiss and close watcher
+  </button>
+  <button onclick="closerequestDialog.show()">
+    Open dialog with close watcher
+  </button>
+  <button onclick="noneDialog.show()">
+    Open dialog with no automatic close (default)
+  </button>
+  <button onclick="anyDialog.showModal()">
+    Open modal dialog with light dismiss and close watcher
+  </button>
+  <button onclick="closerequestDialog.showModal()">
+    Open modal dialog with close watcher (default)
+  </button>
+  <button onclick="noneDialog.showModal()">
+    Open modal dialog with no automatic close (TODO)
   </button>
 
-  <dialog id="dialog">
-    Modal Dialog <button onclick="dialog.setAttribute('lightdismiss', '')">Light there be light</button>
+  <dialog closedby="none" id="noneDialog">
+    Dialog with no automatic close
+  </dialog>
+
+  <dialog closedby="closerequest" id="closerequestDialog">
+    Dialog with close watcher
+  </dialog>
+
+  <dialog closedby="any" id="anyDialog">
+    Dialog with light dismiss and close watcher
   </dialog>
 </body>
